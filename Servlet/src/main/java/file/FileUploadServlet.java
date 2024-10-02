@@ -21,7 +21,12 @@ import javax.servlet.http.Part;
  * Servlet implementation class FileUploadServlet
  */
 @WebServlet("/upload")
-@MultipartConfig		// 파일 업로드를 처리하기 위한 어노테이션 설정
+//파일 업로드를 처리하기 위한 어노테이션 설정
+@MultipartConfig(
+	fileSizeThreshold = 1 * 1024 * 1024,	// 파일 초과 시 임시 메모리
+	maxFileSize = 10 * 1024 * 1024,			// 파일당 최대 크기
+	maxRequestSize = 50 * 1024 * 1024		// 요청당 최대 크기 (5개의 * 10MB)
+)
 public class FileUploadServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        

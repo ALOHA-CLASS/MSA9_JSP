@@ -3,9 +3,6 @@ package file;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URLEncoder;
-
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -13,14 +10,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Servlet implementation class FileDownloadServlet
- */
-@WebServlet("/download")
-public class FileDownloadServlet extends HttpServlet {
+@WebServlet("/img")
+public class ImgServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-    public FileDownloadServlet() {
+    public ImgServlet() {
         super();
     }
 
@@ -35,42 +29,55 @@ public class FileDownloadServlet extends HttpServlet {
 		
 		// 파일 경로 
 		String downloadDir = "C:\\fileupload";
-		String downloadFilePath = downloadDir + File.separator + fileName;
-		File file = new File(downloadFilePath);
+		String imgFilePath = downloadDir + File.separator + fileName;
+		// imgFilePath 	: C:\fileupload\a.b\A.B.jpg
+		// 이미지 확장자 	: jpg, png, gif, webp  
 		
+		// 파일 경로로 부터 이미지 확장자 추출
+		String ext = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+		// 이미지 컨텐츠타입 : image/jpeg, image/png, image/gif, /image/webp
+		String contentType;
+		switch (ext) {
+			case "jpg":
+			case "jpeg":
+				contentType = "image/jpeg";
+				break;
+			case "png":
+				contentType = "image/png";
+				break;
+			case "gif":
+				contentType = "image/gif";
+				break;
+			case "webp":
+				contentType = "image/webp";
+				break;
+			default:
+				response.getWriter().println("이미지 형식이 아닙니다.");
+				return;
+		}
+		// 응답 헤더 컨텐츠 타입 지정
+		response.setContentType(contentType);
+		
+		File file = new File(imgFilePath);
 		// 파일 존재 여부
 		if( !file.exists() ) {
 			response.getWriter().println("파일이 존재하지 않습니다.");
 			return;
 		}
-		
-		// 응답 설정
-		// * 응답 헤더
-		// 1. 응답 컨텐츠 타입이 파일이다.
-		// 2. 응답 컨텐츠를 브라우저에서 랜더링하는게 아닌 다운로드하도록 헤더 설정
-		response.setCharacterEncoding("UTF-8");
-		response.setContentType("application/octet-stream");
-		fileName = URLEncoder.encode(fileName, "UTF-8");  // ★한글파일명을 위해서 인코딩 설정
-		response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-		response.setContentLength((int) file.length());
-		
-		// 파일 다운로드
-		try {
-			FileInputStream fis = new FileInputStream(file);
-			ServletOutputStream sos = response.getOutputStream();
-			
+		// 이미지 파일을 서버에서 파일 입력 			: FileInputStream
+		// 입력받은 이미지 파일을 클라이언트로 출력	: ServletOutputStream
+		// try-with-resource (Auto Close)
+		try( FileInputStream fis = new FileInputStream(file);
+			 ServletOutputStream sos = response.getOutputStream() ) {
 			byte[] buffer = new byte[4096];
 			int data = -1;
 			while( (data = fis.read(buffer)) != -1 ) {
 				sos.write(buffer, 0, data);
 			}
-			fis.close();
-			sos.close();
-		} catch (Exception e) {
-			System.err.println("파일 다운로드 중 에러 발생!");
+		} catch(Exception e) {
+			System.err.println("이미지 파일 전송 중 에러발생");
 			e.printStackTrace();
 		}
-		
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -78,8 +85,6 @@ public class FileDownloadServlet extends HttpServlet {
 	}
 
 }
-
-
 
 
 
