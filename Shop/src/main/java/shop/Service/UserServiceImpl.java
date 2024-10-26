@@ -1,67 +1,115 @@
 package shop.Service;
 
-import org.mindrot.jbcrypt.BCrypt;
+import java.sql.SQLException;
+import java.util.UUID;
 
+import shop.DAO.UserAuthDAO;
 import shop.DAO.UserDAO;
+import shop.DTO.Auth;
+import shop.DTO.UserAuth;
 import shop.DTO.Users;
 import shop.utils.PasswordUtils;
 
 public class UserServiceImpl implements UserService {
-
-	private UserDAO userDAO = new UserDAO();
 	
+	private UserDAO userDAO = new UserDAO(); 
+	private UserAuthDAO userAuthDAO = new UserAuthDAO(); 
+
 	@Override
 	public int signup(Users user) {
+		int result = 0;
+		// 유효성 검사
+		if( user == null || user.isEmpty() ) {
+			return 0;
+		}
 		// 비밀번호 암호화
-		// * 암호화 알고리즘 : SHA-256, Bcrypt ...
-		// 123456 ---> FIJ3124890J12/@3J9
-		String encodedPassword = PasswordUtils.encoded(user.getPassword());
+		String password = user.getPassword();
+		if( password == null || password.equals("") ) {
+			return 0;
+		}
+		String encodedPassword = PasswordUtils.encoded(password);
 		user.setPassword(encodedPassword);
+		try {
+			result = userDAO.insert(user);
+		} catch (Exception e) {
+			try {
+				userDAO.con.rollback();
+				System.err.println("@UserServiceImpl - signup(user) : 회원가입 실패");
+				return 0;
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
 		
-		int result = userDAO.signup(user);
-		if( result > 0 ) System.out.println("회원 가입 성공!");
-		else 			 System.out.println("회원 가입 실패!");
+		System.out.println("@UserServiceImpl - signup(user) : result : " + result);
+		System.out.println("@UserServiceImpl - signup(user) : 회원가입 성공");
 		
-		// 회원 기본 권한 등록...
+		// 회원 가입 성공 시, 사용자 권한 등록
+		int result2 = 0;
+		UserAuth userAuth = UserAuth.builder()
+								.id(UUID.randomUUID().toString())
+								.username(user.getUsername())
+								.auth(Auth.USER.toString())
+								.build();
+		try {
+			System.out.println("userAuth : "  + userAuth);
+			result2 = userAuthDAO.insert(userAuth);
+			System.out.println("@UserServiceImpl - signup(user) : result : " + result);
+			System.out.println("@UserServiceImpl - signup(user) - 회원 권한 등록 성공");
+		} catch (Exception e) {
+			try {
+				userAuthDAO.con.rollback();
+				System.err.println("@UserServiceImpl - signup(user) : 회원 권한 등록 실패");
+				return 0;
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+		
+		try {
+			if( result > 0 ) userDAO.con.commit();
+			else userDAO.con.rollback();
+			
+			if( result2 > 0 ) userAuthDAO.con.commit();
+			else userAuthDAO.con.rollback();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 
 	@Override
 	public Users login(Users user) {
-		String username = user.getUsername();
-		Users selectedUser = userDAO.select(username);
 		
-		// 회원 가입이 안 된 아이디
-		if( selectedUser == null ) 
-			return null;
 		
-		// 비밀번호 일치 여부 확인
+		Users joinedUser = userDAO.selectBy(where);
+		
 		String loginPassword = user.getPassword();
-		String password = selectedUser.getPassword();
+		String password = joinedUser.getPassword();
 		
-		// * BCrypt.checkpw(로그인 비밀번호, 암호호된 비밀번호);
-		boolean check = PasswordUtils.check(loginPassword, password);
-		
-		// 비밀번호 불일치
-		if( !check )
-			return null;
-		// 로그인 성공
-		return selectedUser;
+		PasswordUtils.check(loginPassword, password);
+		return null;
 	}
 
 	@Override
 	public Users select(int no) {
-		Users user = userDAO.select(no);
-		return user;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Users select(String username) {
-		Users user = userDAO.select(username);
-		return user;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
+
+
+
+
 
 
 

@@ -1,25 +1,33 @@
 package shop.DTO;
 
 import java.util.Date;
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PersistenceLogins {
+public class UserAuth {
+	
 	private Long no;
 	private String id;
 	private String username;
-	private String token;
-	private Date expiryDate; 
-	private Date createdAt; 
-	private Date updatedAt; 
+	private String auth;
+	private Date createdAt;
+	private Date updatedAt;
+	
+	public UserAuth() {
+		this.id = UUID.randomUUID().toString();	
+	}
+	
 }
+
+
+
+
 
 
 

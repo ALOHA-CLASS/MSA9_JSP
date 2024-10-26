@@ -1,3 +1,4 @@
+<%@page import="java.util.UUID"%>
 <%@page import="shop.Service.UserServiceImpl"%>
 <%@page import="shop.Service.UserService"%>
 <%@page import="shop.DTO.Users"%>
@@ -11,6 +12,7 @@
 	
 	// User 객체 생성
 	Users user = Users.builder()
+						.id(UUID.randomUUID().toString())
 						.username(username)
 						.password(password)
 						.name(name)

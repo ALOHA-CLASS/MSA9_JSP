@@ -18,9 +18,7 @@ import javax.servlet.http.HttpSession;
 import shop.DTO.PersistenceLogins;
 import shop.DTO.Users;
 import shop.Service.PersistenceLoginsService;
-import shop.Service.PersistenceLoginsServiceImpl;
 import shop.Service.UserService;
-import shop.Service.UserServiceImpl;
 
 /**
  * Servlet Filter implementation class LoginFilter
@@ -36,8 +34,8 @@ public class LoginFilter extends HttpFilter implements Filter {
     }
 
     public void init(FilterConfig fConfig) throws ServletException {
-    	persistenceLoginsService = new PersistenceLoginsServiceImpl();
-    	userService = new UserServiceImpl();
+//    	persistenceLoginsService = new PersistenceLoginsServiceImpl();
+//    	userService = new UserServiceImpl();
     }
 	
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
